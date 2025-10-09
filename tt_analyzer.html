@@ -4,55 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Corridor Travel Time Analyzer — HTML/JS</title>
-  <!-- Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
-  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-  <style>
-    :root { --bg:#0f172a; --ink:#e2e8f0; --muted:#94a3b8; --card:#111827; --accent:#22d3ee; --ok:#34d399; --warn:#fbbf24; --err:#f87171; }
-    *,*::before,*::after{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body { margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:var(--ink); overflow-x:hidden; }
-    header { padding:16px 20px; border-bottom:1px solid #1f2937; display:flex; gap:12px; align-items:center; }
-    header h1 { margin:0; font-size:18px; letter-spacing:.3px; font-weight:600; }
-    .wrap { display:grid; grid-template-columns: clamp(280px, 26vw, 360px) 1fr; min-height:calc(100% - 60px); }
-    aside, main { min-width:0; }
-    aside { border-right:1px solid #1f2937; padding:16px; overflow:auto; }
-    main { padding:16px; overflow:auto; }
-    .card { background:var(--card); border:1px solid #1f2937; border-radius:14px; padding:14px; overflow:hidden; }
-    .muted { color:var(--muted); font-size:12px; }
-    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .col { display:flex; flex-direction:column; gap:6px; }
-    label { font-size:12px; color:var(--muted); }
-    input[type="text"], input[type="number"], select { background:#0b1220; color:var(--ink); border:1px solid #223045; border-radius:10px; padding:8px 10px; outline:none; width:100%; }
-    input[type="file"] { color:var(--ink); font-size:12px; width:100%; max-width:100%; }
-    button { background:#0b1220; color:var(--ink); border:1px solid #223045; border-radius:12px; padding:8px 12px; cursor:pointer; }
-    button.primary { background:linear-gradient(135deg,#0891b2,#22d3ee); color:#00212a; border:none; font-weight:600; }
-    button.ghost { background:transparent; border:1px dashed #334155; color:var(--muted); }
-    .pill { padding:4px 8px; border-radius:999px; background:#0b1220; border:1px solid #223045; font-size:12px; }
-    .scenario { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; margin-bottom:10px; }
-    .scenario-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:end; }
-    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .tabs { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
-    .tab { padding:8px 12px; border:1px solid #223045; background:#0b1220; border-radius:12px; cursor:pointer; color:var(--muted); }
-    .tab.active { color:#0b1220; background:linear-gradient(135deg,#4ade80,#a7f3d0); border:0; font-weight:700; }
-    .panel { display:none; }
-    .panel.active { display:block; }
-    .status { white-space:pre-wrap; word-break:break-word; font-family:ui-monospace, Menlo, Consolas, monospace; background:#0b1220; padding:10px; border-radius:10px; border:1px solid #223045; }
-.plot { width:100%; height:420px; min-width:0; display: block; }
-    table { border-collapse:collapse; width:100%; border:1px solid #223045; font-size:13px; }
-    th, td { border:1px solid #223045; padding:6px 8px; text-align:right; }
-    th { background:#0b1220; text-align:center; }
-    td:first-child, th:first-child { text-align:left; }
-    .footer-note { margin-top:8px; font-size:11px; color:var(--muted); }
-    .chip { background:#052e2b; border:1px solid #134e4a; color:#99f6e4; padding:2px 8px; border-radius:999px; font-size:11px; }
-    @media (max-width: 1200px){
-      .scenario-row { grid-template-columns:1fr; }
-      .grid2 { grid-template-columns:1fr; }
-    }
-  </style>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Libraries (order matters; defer preserves order) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
+  <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+  <!-- App -->
+  <script defer src="app.js"></script>
 </head>
 <body>
   <header>
@@ -60,35 +24,37 @@
     <span class="pill">HTML + JS, client side</span>
     <span class="chip">Uploads stay in browser</span>
   </header>
+
   <div class="wrap">
     <aside>
-      <div class="card" style="margin-bottom:12px;">
+      <div class="card mb12">
         <div class="col">
-          <label>Segment catalog file (Excel, first sheet, 4 columns: Direction, Segment, Sensor ID, Location)</label>
+          <label>Segment catalog file (Excel, columns: Direction, Segment Number, Segment Placement, Sensor ID, Location)</label>
           <input id="segmentFile" type="file" accept=".xlsx,.xls,.csv" />
           <div class="muted">Required. Used to build corridor order for Northbound and Southbound.</div>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:12px;">
-        <div class="row" style="justify-content:space-between; align-items:center;">
+      <div class="card mb12">
+        <div class="row space-between">
           <strong>Scenarios</strong>
           <button id="addScenario" class="ghost">+ Add scenario</button>
         </div>
         <div id="scenarios"></div>
-        <div class="footer-note">Each scenario is a VRC Sensor Report file. CSV or Excel with multi section blocks that begin with “Sensor …” (with or without “ID”, colon optional).</div>
+        <div class="footer-note">
+          Each scenario is a VRC Sensor Report file. CSV with blocks that begin with "Sensor ID XXXX".
+        </div>
       </div>
 
-      <div class="card" style="margin-bottom:12px;">
+      <div class="card mb12">
         <div class="grid2">
           <div class="col">
             <label>Vehicle filter</label>
-<select id="vehicleFilter">
-<option value="transit">Transit only</option>
-  <option value="all">All vehicles</option>
-
-  <option value="trucks">Trucks only</option>
-</select>
+            <select id="vehicleFilter">
+              <option value="transit">Transit only</option>
+              <option value="all">All vehicles</option>
+              <option value="trucks">Trucks only</option>
+            </select>
           </div>
           <div class="col">
             <label>Strict corridor match</label>
@@ -98,7 +64,8 @@
             </select>
           </div>
         </div>
-        <div class="grid2" style="margin-top:8px;">
+
+        <div class="grid2 mt8">
           <div class="col">
             <label>Start hour</label>
             <input id="startHour" type="number" value="14" min="0" max="23" />
@@ -110,13 +77,13 @@
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:12px;">
-        <div class="row" style="gap:8px;">
+      <div class="card mb12">
+        <div class="row gap8">
           <button id="run" class="primary">Process data</button>
           <button id="dlCombined" disabled>Download link data CSV</button>
           <button id="dlCorridor" disabled>Download corridor data CSV</button>
         </div>
-        <div id="status" class="status" style="margin-top:10px;">Idle</div>
+        <div id="status" class="status mt10">Idle</div>
       </div>
 
       <div class="card">
@@ -149,6 +116,7 @@
         <div class="tab" data-tab="tsCorr">Corridor time series</div>
         <div class="tab" data-tab="summary">Corridor summary</div>
       </div>
+
       <section id="barSeg" class="panel active">
         <div id="plotBarSeg" class="plot"></div>
       </section>
@@ -169,771 +137,5 @@
       </section>
     </main>
   </div>
-
-
-
-<script>
-
-
-
-
-  dayjs.extend(window.dayjs_plugin_customParseFormat);
-
-  // ------- State -------
-  const state = {
-    dfSegments: [],                 // [{direction, segment, sensor_id, location}]
-    sensorsByDir: { NB: [], SB: [] },
-    scenarios: [],                  // [{id, label, file}]
-    activations: new Map(),         // label -> rows
-    links: new Map(),               // label -> link rows
-    corridors: new Map(),           // label -> corridor rows
-    combinedLinks: [],              // tidy combined
-    combinedCorr: [],               // tidy corridor combined
-  };
-
-  let scenarioCounter = 0;
-
-  // ------- Utils -------
-  const $ = sel => document.querySelector(sel);
-  const $$ = sel => Array.from(document.querySelectorAll(sel));
-  const log = (msg) => { const el = $('#status'); el.textContent += "\n" + msg; el.scrollTop = el.scrollHeight; };
-  const setStatus = (msg) => { $('#status').textContent = msg; };
-
-function cleanName(name){
-  const s = String(name ?? '').replace(/\s+/g,' ').trim().toLowerCase();
-  return s.replace(/[^\w/+\-]+/g,'_').replace(/[\/+\-]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
-}
-
-  function parseTimeToDate(str){
-    if(!str) return null;
-    const s = String(str).trim();
-    // try "h:mm:ss A" then "h:mm A" then fallback
-    let d = dayjs(s, 'h:mm:ss A', true);
-    if(!d.isValid()) d = dayjs(s, 'h:mm A', true);
-    if(!d.isValid()) d = dayjs(s); // very last resort
-    if(!d.isValid()) return null;
-    const h = d.hour(), m = d.minute(), sec = d.second();
-    // anchor to 1900-01-01 (local time still ok since all comparisons are relative)
-    return new Date(1900,0,1,h,m,sec);
-  }
-
-  function hourLocal(date){ return date ? date.getHours() : null; }
-  function secondsDiff(a,b){ return (b - a) / 1000; }
-
-  function quantile(arr, q){
-    const v = arr.filter(x=>Number.isFinite(x)).slice().sort((a,b)=>a-b);
-    if(v.length === 0) return NaN;
-    const pos = (v.length - 1) * q;
-    const base = Math.floor(pos);
-    const rest = pos - base;
-    return v[base] + (v[base+1] !== undefined ? rest*(v[base+1]-v[base]) : 0);
-  }
-
-  function median(arr){ return quantile(arr, 0.5); }
-
-  function floor15min(date){
-    const ms = date.getTime();
-    const fifteen = 15 * 60 * 1000;
-    const floored = Math.floor(ms / fifteen) * fifteen;
-    return new Date(floored);
-  }
-
-  function downloadCSV(name, rows){
-    if(!rows || rows.length===0){ alert('No rows to download'); return; }
-    const cols = Object.keys(rows[0]);
-    const quoted = (v)=>{
-      if(v==null) return '';
-      const s = String(v);
-      return /[\",\n]/.test(s) ? '\"' + s.replace(/\"/g,'\"\"') + '\"' : s;
-    }
-const csv = [cols.join(',')].concat(rows.map(r=>cols.map(c=>quoted(r[c])).join(','))).join('\n');
-    const blob = new Blob([csv], {type:'text/csv'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
-  }
-
-  // ------- File readers -------
-  async function readFileAsArrayBuffer(file){
-    return new Promise((res, rej)=>{ const fr = new FileReader(); fr.onload = ()=>res(fr.result); fr.onerror = rej; fr.readAsArrayBuffer(file); });
-  }
-  async function readFileAsText(file){
-    return new Promise((res, rej)=>{ const fr = new FileReader(); fr.onload = ()=>res(fr.result); fr.onerror = rej; fr.readAsText(file); });
-  }
-
-  async function parseExcelToAOA(file){
-    const ab = await readFileAsArrayBuffer(file);
-    const wb = XLSX.read(ab, {type:'array'});
-    const wsname = wb.SheetNames[0];
-    const ws = wb.Sheets[wsname];
-    return XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:''}); // array of arrays
-  }
-
-  async function parseCSVToAOA(file){
-    const text = await readFileAsText(file);
-    const out = Papa.parse(text, {header:false, skipEmptyLines:false});
-    return out.data.map(row => row.map(c => c==null ? '' : String(c)));
-  }
-
-  async function parseAnyToAOA(file){
-    const name = file.name.toLowerCase();
-    if(name.endsWith('.csv') || name.endsWith('.txt')) return parseCSVToAOA(file);
-    return parseExcelToAOA(file);
-  }
-
-  // ------- Parsers (domain specific) -------
-  async function loadSegmentCatalog(file){
-    const aoa = await parseAnyToAOA(file);
-    // drop fully empty rows
-    const rows = aoa.filter(r => (r||[]).some(c => String(c).trim()!==''));
-    if(rows.length < 2) throw new Error('Segment catalog appears empty');
-
-    // take first 4 columns by position
-    const data = rows.slice(1).map(r => ({
-      direction: String(r[0] ?? '').trim(),
-      segment:   r[1]!=='' ? Number(r[1]) : null,
-      sensor_id: r[2]!=='' ? Number(r[2]) : null,
-      location:  String(r[3] ?? '').trim()
-    })).filter(x => Number.isFinite(x.sensor_id));
-
-    // forward-fill blank Direction cells (Excel-style ffill)
-    let lastDir = '';
-    for (const x of data) {
-      if (x.direction && x.direction.trim() !== '') { lastDir = x.direction; }
-      else { x.direction = lastDir; }
-    }
-
-    // normalize
-data.forEach(x => { x.direction = x.direction.trim().toLowerCase().replace(/^\w/, c=>c.toUpperCase()); });
-    data.sort((a,b)=>{
-      if(a.direction!==b.direction) return a.direction.localeCompare(b.direction);
-      return (a.segment??0) - (b.segment??0);
-    });
-
-    // build orders
-    const nb = data.filter(d=>d.direction.toLowerCase()==='northbound').sort((a,b)=>a.segment-b.segment).map(d=>d.sensor_id);
-    const sb = data.filter(d=>d.direction.toLowerCase()==='southbound').sort((a,b)=>b.segment-a.segment).map(d=>d.sensor_id);
-
-    state.dfSegments = data;
-    state.sensorsByDir = { NB: nb, SB: sb };
-    return data;
-  }
-
-  // Mimic read_vrc_sensor_report
-  async function readVRCSensorReport(file){
-    const raw = await parseAnyToAOA(file); // array of arrays of strings
-    // find block starts where col0 starts with "Sensor ..." (ID optional, colon optional)
-    const starts = [];
-    for(let i=0;i<raw.length;i++){
-      const c0 = String((raw[i]||[])[0] ?? '').trim();
-if(/^[sS]ensor\s+ID\s+\d+/.test(c0)) starts.push(i);
-    }
-    starts.push(raw.length);
-
-    const blocks = [];
-    const summaries = [];
-
-    for(let bi=0; bi<starts.length-1; bi++){
-      const start = starts[bi];
-      const end = starts[bi+1];
-const m = String(raw[start][0]).match(/[sS]ensor(?:\s+ID)?\s*:?\s*(\d+)/);
-      if(!m) continue;
-      const sensor_id = Number(m[1]);
-      const headerRow = start + 1;
-      const cols = (raw[headerRow]||[]).map(cleanName);
-      const body = raw.slice(headerRow+1, end).filter(r => (r||[]).some(c=>String(c).trim()!==''));
-
-      // split at Summary:
-      let summaryIdx = -1;
-      for(let i=0;i<body.length;i++){
-        const c0 = String((body[i]||[])[0] ?? '').trim().toLowerCase();
-        if(c0.startsWith('summary')){ summaryIdx = i; break; }
-      }
-      const dataBlock = summaryIdx>=0 ? body.slice(0, summaryIdx) : body;
-      if(summaryIdx>=0){
-        const srow = body[summaryIdx];
-        const sd = { sensor_id };
-        for(let ci=0; ci<cols.length && ci<srow.length; ci++){
-          const cname = cols[ci];
-          if(cname !== 'time') sd[cname] = srow[ci];
-        }
-        summaries.push(sd);
-      }
-
-      if(!dataBlock.length) continue;
-      for(const row of dataBlock){
-        const rec = { sensor_id };
-        for(let ci=0; ci<cols.length; ci++){
-          rec[cols[ci]] = row[ci] ?? '';
-        }
-        blocks.push(rec);
-      }
-    }
-
-    // Normalize activations
-    const act = blocks.map(r=>({...r}));
-    for(const r of act){
-      if(r.hasOwnProperty('vehicle')){ r.vehicle_id = r.vehicle; delete r.vehicle; }
-      if(r.hasOwnProperty('speed_(mph)')){ r.speed_mph = Number(r['speed_(mph)']); delete r['speed_(mph)']; }
-      if(r.hasOwnProperty('speed')){ r.speed_mph = Number(r.speed); delete r.speed; }
-      if(r.hasOwnProperty('occup_ants')){ r.occupants = r['occup_ants']; delete r['occup_ants']; }
-      r.sensor_id = Number(r.sensor_id);
-      // vehicle id keep as string digits without leading zeros
-      if(r.vehicle_id!=null){
-let s = String(r.vehicle_id).replace(/[^\d]/g,'');
-s = s.replace(/^0+/,'');
-        if(s==='') s = null;
-        r.vehicle_id = s;
-      }
-      // ts from time or ts
-      if(!r.ts){
-        const t = r.time ?? r.Time ?? '';
-        const d = parseTimeToDate(t);
-        r.ts = d;
-      } else {
-        if(!(r.ts instanceof Date)) r.ts = parseTimeToDate(r.ts);
-      }
-      if(r.transit!=null) r.transit = Number(r.transit);
-      if(r.truck!=null) r.truck = Number(r.truck);
-    }
-
-    // summary cleanup: vehicle there is a count
-    const summ = summaries.map(s => {
-      const out = {...s};
-if(out.vehicle_id!=null){ out.vehicle_count = Number(String(out.vehicle_id).replace(/[^\d]/g,'')) || null; delete out.vehicle_id; }
-      return out;
-    });
-
-    return { activations: act.filter(r=>r.sensor_id && r.ts instanceof Date), summary: summ };
-  }
-
-  function buildOrders(){
-    const nb = state.dfSegments.filter(d=>d.direction.toLowerCase()==='northbound').sort((a,b)=>a.segment-b.segment).map(d=>d.sensor_id);
-    const sb = state.dfSegments.filter(d=>d.direction.toLowerCase()==='southbound').sort((a,b)=>b.segment-a.segment).map(d=>d.sensor_id);
-    return { NB: nb, SB: sb };
-  }
-
-  function posIndex(direction, sensor_id, orders){
-    if(direction.toLowerCase()==='northbound'){
-      const i = orders.NB.indexOf(sensor_id); return i>=0 ? i : null;
-    } else if(direction.toLowerCase()==='southbound'){
-      const i = orders.SB.indexOf(sensor_id); return i>=0 ? i : null;
-    }
-    return null;
-  }
-
-  function computeLinkAndCorridor(activations, vehicleFilter, dfSegments){
-    const orders = buildOrders();
-
-    // vehicle filter
-    let act = activations.filter(r=>r.vehicle_id && r.ts instanceof Date);
-if(vehicleFilter==='transit'){
-  act = act.filter(r=>r.transit && Number(r.transit)===1);
-
-} else if(vehicleFilter==='trucks'){
-  act = act.filter(r=>r.truck && Number(r.truck)===1);
-}
-
-    // attach direction, segment, location via sensor_id
-    const metaBySensor = new Map();
-    for(const row of dfSegments){ metaBySensor.set(Number(row.sensor_id), row); }
-    act = act.map(r=>{
-      const m = metaBySensor.get(Number(r.sensor_id));
-      return { ...r, direction: m?.direction, segment: m?.segment, location: m?.location };
-    }).filter(r=>r.direction && Number.isFinite(r.segment));
-
-    // path_pos
-    const orders2 = buildOrders();
-    act = act.map(r => ({...r, path_pos: posIndex(r.direction, Number(r.sensor_id), orders2)}))
-             .filter(r => r.path_pos!=null);
-
-    // sort and dedupe first hit per vehicle-direction-sensor
-    act.sort((a,b)=>{
-      if(a.vehicle_id!==b.vehicle_id) return (a.vehicle_id||'').localeCompare(b.vehicle_id||'');
-      if(a.direction!==b.direction) return a.direction.localeCompare(b.direction);
-      if(a.path_pos!==b.path_pos) return a.path_pos - b.path_pos;
-      return a.ts - b.ts;
-    });
-
-    const keySeen = new Set();
-    const dedup = [];
-    for(const r of act){
-      const k = `${r.vehicle_id}|${r.direction}|${r.sensor_id}`;
-      if(!keySeen.has(k)){ keySeen.add(k); dedup.push(r); }
-    }
-
-    // compute next_* within vehicle_id + direction
-    const groups = new Map();
-    for(const r of dedup){
-      const k = `${r.vehicle_id}|${r.direction}`;
-      if(!groups.has(k)) groups.set(k, []);
-      groups.get(k).push(r);
-    }
-    for(const arr of groups.values()) arr.sort((a,b)=> a.path_pos===b.path_pos ? a.ts-b.ts : a.path_pos-b.path_pos);
-
-    const links = [];
-    const firsts = [];
-    const lasts = [];
-
-    for(const [k, arr] of groups){
-      if(arr.length===0) continue;
-      // first and last
-      firsts.push(arr[0]);
-      lasts.push(arr[arr.length-1]);
-      for(let i=0;i<arr.length-1;i++){
-        const a = arr[i], b = arr[i+1];
-        if((b.path_pos - a.path_pos) === 1){
-          const tt = secondsDiff(a.ts, b.ts);
-          if(tt>0){
-const isNB = a.direction.toLowerCase() === 'northbound';
-const link_segment = isNB ? Math.max(a.segment, b.segment) : Math.min(a.segment, b.segment);
-
-links.push({
-  vehicle_id: a.vehicle_id, direction: a.direction,
-  link_segment: link_segment,  // New field for correct segment attribution
-  from_segment: a.segment, to_segment: b.segment,
-  from_sensor_id: a.sensor_id, to_sensor_id: b.sensor_id,
-  depart_ts: a.ts, arrive_ts: b.ts, travel_time_s: tt
-});
-          }
-        }
-      }
-    }
-
-    const corridor = [];
-    for(const [k, arr] of groups){
-      const first = arr[0], last = arr[arr.length-1];
-      if(!first || !last) continue;
-      if(last.path_pos > first.path_pos){
-        const tt = secondsDiff(first.ts, last.ts);
-        if(tt>0){
-          corridor.push({
-            vehicle_id:first.vehicle_id, direction:first.direction,
-            from_segment:first.segment, to_segment:last.segment,
-            from_sensor_id:first.sensor_id, to_sensor_id:last.sensor_id,
-            depart_ts:first.ts, arrive_ts:last.ts, corridor_tt_s:tt
-          });
-        }
-      }
-    }
-
-    return { link_tt: links, corridor_tt: corridor };
-  }
-
-function extractFullCorridorRuns(activations, dfSegments, vehicleFilter, startHour=14, endHour=18, strict=false)
-    let act = activations.filter(r=>r.vehicle_id && r.ts instanceof Date && hourLocal(r.ts)>=startHour && hourLocal(r.ts)<endHour);
-
-if(vehicleFilter==='transit'){
-  act = act.filter(r=>r.transit && Number(r.transit)===1);
-} else if(vehicleFilter==='trucks'){
-  act = act.filter(r=>r.truck && Number(r.truck)===1);
-}
-
-    // attach meta
-    const metaBySensor = new Map();
-    for(const row of dfSegments){ metaBySensor.set(Number(row.sensor_id), row); }
-    act = act.map(r=>{
-      const m = metaBySensor.get(Number(r.sensor_id));
-      return { ...r, direction: m?.direction, segment: m?.segment, location: m?.location };
-    }).filter(r=>r.direction && Number.isFinite(r.segment));
-
-    // sort by veh, dir, ts
-    act.sort((a,b)=>{
-      if(a.vehicle_id!==b.vehicle_id) return (a.vehicle_id||'').localeCompare(b.vehicle_id||'');
-      if(a.direction!==b.direction) return a.direction.localeCompare(b.direction);
-      return a.ts - b.ts;
-    });
-
-    // group vehicle + direction
-    const groups = new Map();
-    for(const r of act){ const k = `${r.vehicle_id}|${r.direction}`; if(!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
-
-    // orders
-    const orders = buildOrders();
-
-    const rows = [];
-    for(const [k, g] of groups){
-      if(g.length===0) continue;
-      const dir = String(g[0].direction).trim();
-      const order = dir.toLowerCase()==='northbound' ? orders.NB : orders.SB;
-      const first_id = order[0];
-      const last_id  = order[order.length-1];
-
-      // first hit per sensor in time order
-      const seen = new Set();
-      const seq = [];
-      for(const r of g){
-        if(!seen.has(r.sensor_id)){ seen.add(r.sensor_id); seq.push(r.sensor_id); }
-      }
-
-      let ok = false;
-      if(strict){ ok = seq.length===order.length && seq.every((sid, i)=>sid===order[i]); }
-      else { ok = seq.includes(first_id) && seq.includes(last_id) && seq.indexOf(first_id) < seq.indexOf(last_id); }
-      if(!ok) continue;
-
-      const depart_ts = g.find(r=>r.sensor_id===first_id)?.ts;
-      const arrive_ts = [...g].reverse().find(r=>r.sensor_id===last_id)?.ts;
-      if(!(depart_ts && arrive_ts) || arrive_ts<=depart_ts) continue;
-
-      const tt = secondsDiff(depart_ts, arrive_ts);
-      rows.push({
-        vehicle_id: g[0].vehicle_id,
-        direction: dir,
-        depart_ts, arrive_ts,
-        corridor_tt_s: tt,
-        visited_count: seq.length,
-        visited_sensors: seq,
-        bin_15min: floor15min(depart_ts),
-        corridor_tt_min: tt/60
-      });
-    }
-    return rows;
-  }
-
-  function buildCombinedLinks(linksByScenario, startHour, endHour){
-    const frames = [];
-    for(const [label, rows] of linksByScenario){
-      for(const r of rows){
-        const h = hourLocal(r.depart_ts);
-        if(h>=startHour && h<endHour){
-          frames.push({
-            scenario: label,
-            direction: r.direction,
-segment: r.link_segment || r.from_segment,  // Prefer link_segment if available
-            bin_15min: floor15min(r.depart_ts),
-            depart_ts: r.depart_ts,
-            arrive_ts: r.arrive_ts,
-            travel_time_s: r.travel_time_s,
-            vehicle_id: r.vehicle_id
-          });
-        }
-      }
-    }
-    return frames;
-  }
-
-  function buildCombinedCorridor(runsByScenario){
-    const out = [];
-    for(const [label, rows] of runsByScenario){
-      for(const r of rows){ out.push({ ...r, scenario: label }); }
-    }
-    return out;
-  }
-
-  // -------- Aggregations for plotting --------
-  function groupBy(arr, keys){
-    const map = new Map();
-    for(const r of arr){
-      const k = keys.map(k=>String(r[k])).join('|');
-      if(!map.has(k)) map.set(k, []);
-      map.get(k).push(r);
-    }
-    return map;
-  }
-
-  function segmentSummary(combined){
-    const g = groupBy(combined, ['scenario','direction','segment']);
-    const rows = [];
-    for(const [k, arr] of g){
-      const tt = arr.map(r=>r.travel_time_s);
-      rows.push({
-        scenario: arr[0].scenario,
-        direction: arr[0].direction,
-        segment: arr[0].segment,
-        n: tt.length,
-        mean_min: (tt.reduce((a,b)=>a+b,0)/tt.length)/60,
-        median_min: median(tt)/60,
-        p10_min: quantile(tt,0.10)/60,
-        p90_min: quantile(tt,0.90)/60,
-      });
-    }
-    rows.sort((a,b)=> a.direction===b.direction ? a.segment-b.segment : a.direction.localeCompare(b.direction));
-    return rows;
-  }
-
-  function corridorSummary(combinedCorr){
-    const g = groupBy(combinedCorr, ['scenario','direction']);
-    const rows = [];
-    for(const [k, arr] of g){
-      const tt = arr.map(r=>r.corridor_tt_s);
-      rows.push({
-        scenario: arr[0].scenario,
-        direction: arr[0].direction,
-        n: tt.length,
-        mean_min: (tt.reduce((a,b)=>a+b,0)/tt.length)/60,
-        median_min: median(tt)/60,
-        p10_min: quantile(tt,0.10)/60,
-        p90_min: quantile(tt,0.90)/60,
-      });
-    }
-    rows.sort((a,b)=> a.scenario===b.scenario ? a.direction.localeCompare(b.direction) : a.scenario.localeCompare(b.scenario));
-    return rows;
-  }
-
-  function fifteenMinMedians(combined){
-    const g = groupBy(combined, ['scenario','direction','segment','bin_15min']);
-    const rows = [];
-    for(const [k, arr] of g){
-      const tt = arr.map(r=>r.travel_time_s);
-      rows.push({
-        scenario: arr[0].scenario,
-        direction: arr[0].direction,
-        segment: arr[0].segment,
-        bin_15min: arr[0].bin_15min,
-        median_tt_min: median(tt)/60,
-      });
-    }
-    rows.sort((a,b)=> a.bin_15min - b.bin_15min);
-    return rows;
-  }
-
-  function corridor15MinMedians(combinedCorr){
-    const g = groupBy(combinedCorr, ['scenario','direction','bin_15min']);
-    const rows = [];
-    for(const [k, arr] of g){
-      const tt = arr.map(r=>r.corridor_tt_s);
-      rows.push({
-        scenario: arr[0].scenario,
-        direction: arr[0].direction,
-        bin_15min: arr[0].bin_15min,
-        median_tt_min: median(tt)/60,
-      });
-    }
-    rows.sort((a,b)=> a.bin_15min - b.bin_15min);
-    return rows;
-  }
-
-  // --------- Plots ---------
-  function renderBarBySegment(){
-    const dir = $('#directionPick').value;
-    const summ = segmentSummary(state.combinedLinks).filter(r=>r.direction.toLowerCase()===dir.toLowerCase());
-    if(summ.length===0){ Plotly.purge('plotBarSeg'); return; }
-    const segs = Array.from(new Set(summ.map(r=>r.segment))).sort((a,b)=>a-b);
-    const scenarios = Array.from(new Set(summ.map(r=>r.scenario))).sort();
-    const traces = [];
-    for(const sc of scenarios){
-      const y = segs.map(s => {
-        const row = summ.find(r=>r.segment===s && r.scenario===sc);
-        return row ? row.median_min : null;
-      });
-      traces.push({
-        type:'bar', name: sc, x: segs.map(String), y,
-      });
-    }
-    const layout = {
-      barmode:'group',
-      title: `${dir} — Median link travel time by segment (2–5 PM)`,
-      xaxis:{ title:'Segment (upstream)' }, yaxis:{ title:'Median travel time (min)' },
-      margin:{t:40,r:10,b:50,l:50}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:'#e2e8f0'}
-    };
-    Plotly.newPlot('plotBarSeg', traces, layout, {displayModeBar:true, responsive:true});
-  }
-
-  function renderBoxBySegment(){
-    const dir = $('#directionPick').value;
-    const df = state.combinedLinks.filter(r=>r.direction.toLowerCase()===dir.toLowerCase());
-    if(df.length===0){ Plotly.purge('plotBoxSeg'); return; }
-    const segs = Array.from(new Set(df.map(r=>r.segment))).sort((a,b)=>a-b);
-    const scenarios = Array.from(new Set(df.map(r=>r.scenario))).sort();
-    const traces = [];
-    for(const sc of scenarios){
-      const x = [], y = [];
-      for(const s of segs){
-        const vals = df.filter(r=>r.segment===s && r.scenario===sc).map(r=>r.travel_time_s/60);
-        if(vals.length){
-          for(const v of vals){ x.push(String(s)); y.push(v); }
-        }
-      }
-      traces.push({ type:'box', name: sc, x, y, boxpoints:false });
-    }
-    const layout = { boxmode:'group', title:`${dir} — Link travel times by segment (2–5 PM)`, xaxis:{ title:'Segment' }, yaxis:{ title:'Travel time (min)' }, margin:{t:40,r:10,b:50,l:50}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:'#e2e8f0'} };
-    Plotly.newPlot('plotBoxSeg', traces, layout, {displayModeBar:true, responsive:true});
-  }
-
-  function renderSegmentTimeSeries(){
-    const dir = $('#directionPick').value;
-    const seg = Number($('#segmentPick').value);
-    const ts = fifteenMinMedians(state.combinedLinks).filter(r=>r.direction.toLowerCase()===dir.toLowerCase() && r.segment===seg);
-    if(ts.length===0){ Plotly.purge('plotTsSeg'); return; }
-    const scenarios = Array.from(new Set(ts.map(r=>r.scenario))).sort();
-    const traces = scenarios.map(sc => ({
-      type:'scatter', mode:'lines+markers', name: sc,
-      x: ts.filter(r=>r.scenario===sc).map(r=>r.bin_15min),
-      y: ts.filter(r=>r.scenario===sc).map(r=>r.median_tt_min)
-    }));
-    const layout = { title:`${dir} — Segment ${seg}: 15‑min median travel time`, xaxis:{ title:'Time' }, yaxis:{ title:'Median travel time (min)' }, margin:{t:40,r:10,b:50,l:50}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:'#e2e8f0'} };
-    Plotly.newPlot('plotTsSeg', traces, layout, {displayModeBar:true, responsive:true});
-  }
-
-  function renderCorridorBox(){
-    const dir = $('#directionPick').value;
-    const df = state.combinedCorr.filter(r=>r.direction.toLowerCase()===dir.toLowerCase());
-    if(df.length===0){ Plotly.purge('plotBoxCorr'); return; }
-    const scenarios = Array.from(new Set(df.map(r=>r.scenario))).sort();
-    const traces = scenarios.map(sc => ({ type:'box', name:sc, x: Array(df.filter(r=>r.scenario===sc).length).fill(sc), y: df.filter(r=>r.scenario===sc).map(r=>r.corridor_tt_min) }));
-    const layout = { boxmode:'group', title:`${dir} — Corridor travel times (2–5 PM)`, xaxis:{ title:'Scenario' }, yaxis:{ title:'Travel time (min)' }, margin:{t:40,r:10,b:50,l:50}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:'#e2e8f0'} };
-    Plotly.newPlot('plotBoxCorr', traces, layout, {displayModeBar:true, responsive:true});
-  }
-
-  function renderCorridorTimeSeries(){
-    const dir = $('#directionPick').value;
-    const ts = corridor15MinMedians(state.combinedCorr).filter(r=>r.direction.toLowerCase()===dir.toLowerCase());
-    if(ts.length===0){ Plotly.purge('plotTsCorr'); return; }
-    const scenarios = Array.from(new Set(ts.map(r=>r.scenario))).sort();
-    const traces = scenarios.map(sc => ({ type:'scatter', mode:'lines+markers', name: sc, x: ts.filter(r=>r.scenario===sc).map(r=>r.bin_15min), y: ts.filter(r=>r.scenario===sc).map(r=>r.median_tt_min) }));
-    const layout = { title:`${dir} — Corridor 15‑min median travel time`, xaxis:{ title:'Time' }, yaxis:{ title:'Median travel time (min)' }, margin:{t:40,r:10,b:50,l:50}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:'#e2e8f0'} };
-    Plotly.newPlot('plotTsCorr', traces, layout, {displayModeBar:true, responsive:true});
-  }
-
-  function renderSummaryTable(){
-    const rows = corridorSummary(state.combinedCorr);
-    const host = $('#summaryTable');
-    host.innerHTML = '';
-    if(rows.length===0) return;
-    const table = document.createElement('table');
-    const thead = document.createElement('thead');
-    thead.innerHTML = `<tr><th>Scenario</th><th>Direction</th><th>n</th><th>Mean (min)</th><th>Median (min)</th><th>P10 (min)</th><th>P90 (min)</th></tr>`;
-    const tbody = document.createElement('tbody');
-    for(const r of rows){
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${r.scenario}</td><td>${r.direction}</td><td>${r.n}</td><td>${r.mean_min.toFixed(2)}</td><td>${r.median_min.toFixed(2)}</td><td>${r.p10_min.toFixed(2)}</td><td>${r.p90_min.toFixed(2)}</td>`;
-      tbody.appendChild(tr);
-    }
-    table.appendChild(thead); table.appendChild(tbody); host.appendChild(table);
-  }
-
-  function refreshSegmentPicker(){
-    const dir = $('#directionPick').value;
-    const segs = Array.from(new Set(state.combinedLinks.filter(r=>r.direction.toLowerCase()===dir.toLowerCase()).map(r=>r.segment))).sort((a,b)=>a-b);
-    const sel = $('#segmentPick');
-    sel.innerHTML = '';
-    for(const s of segs){ const opt = document.createElement('option'); opt.value = s; opt.textContent = s; sel.appendChild(opt); }
-  }
-
-  function renderAll(){
-    refreshSegmentPicker();
-    renderBarBySegment();
-    renderBoxBySegment();
-    renderSegmentTimeSeries();
-    renderCorridorBox();
-    renderCorridorTimeSeries();
-    renderSummaryTable();
-  }
-
-  // ------- UI wiring -------
-  function addScenarioRow(){
-    scenarioCounter += 1;
-    const container = document.createElement('div');
-    container.className = 'scenario card';
-    container.innerHTML = `
-      <div class="scenario-row">
-        <div class="col">
-          <label>Scenario label</label>
-          <input type="text" value="Scenario ${scenarioCounter}" />
-        </div>
-        <div class="col">
-          <label>File (CSV or Excel)</label>
-          <input type="file" accept=".csv,.txt,.xlsx,.xls" />
-        </div>
-      </div>
-      <div class="row" style="justify-content:flex-end; gap:6px;">
-        <button class="ghost" data-act="remove">Remove</button>
-      </div>`;
-    $('#scenarios').appendChild(container);
-  }
-
-  // init with three scenarios rows
-  addScenarioRow(); addScenarioRow(); addScenarioRow();
-
-  $('#addScenario').addEventListener('click', addScenarioRow);
-  $('#scenarios').addEventListener('click', (e)=>{
-    if(e.target.matches('button[data-act="remove"]')){ e.target.closest('.scenario').remove(); }
-  });
-
-$$('.tab').forEach(tab=>{
-  tab.addEventListener('click', ()=>{
-    $$('.tab').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    const id = tab.dataset.tab;
-    $$('.panel').forEach(p=>p.classList.remove('active'));
-    $('#'+id).classList.add('active');
-    
-    // Force Plotly to resize after tab switch
-    setTimeout(() => {
-      Plotly.Plots.resize(id === 'barSeg' ? 'plotBarSeg' : 
-                          id === 'boxSeg' ? 'plotBoxSeg' :
-                          id === 'tsSeg' ? 'plotTsSeg' :
-                          id === 'boxCorr' ? 'plotBoxCorr' :
-                          id === 'tsCorr' ? 'plotTsCorr' : null);
-    }, 100);
-  });
-});
-
-  $('#directionPick').addEventListener('change', ()=>{ renderAll(); });
-  $('#segmentPick').addEventListener('change', ()=>{ renderSegmentTimeSeries(); });
-
-  $('#dlCombined').addEventListener('click', ()=> downloadCSV('combined_links.csv', state.combinedLinks.map(r=>({
-    scenario:r.scenario, direction:r.direction, segment:r.segment, bin_15min: new Date(r.bin_15min).toISOString(), depart_ts: new Date(r.depart_ts).toISOString(), arrive_ts: new Date(r.arrive_ts).toISOString(), travel_time_s:r.travel_time_s, vehicle_id:r.vehicle_id
-  }))));
-  $('#dlCorridor').addEventListener('click', ()=> downloadCSV('combined_corridor.csv', state.combinedCorr.map(r=>({
-    scenario:r.scenario, direction:r.direction, depart_ts: new Date(r.depart_ts).toISOString(), arrive_ts: new Date(r.arrive_ts).toISOString(), corridor_tt_s:r.corridor_tt_s, visited_count:r.visited_count, visited_sensors: (r.visited_sensors||[]).join('|'), bin_15min: new Date(r.bin_15min).toISOString(), corridor_tt_min:r.corridor_tt_min
-  }))));
-
-  $('#run').addEventListener('click', async ()=>{
-    try{
-      setStatus('Parsing segment catalog...');
-      state.dfSegments = []; state.activations.clear(); state.links.clear(); state.corridors.clear();
-      state.combinedLinks = []; state.combinedCorr = [];
-
-      const segFile = $('#segmentFile').files[0];
-      if(!segFile) throw new Error('Please choose a segment catalog file');
-      await loadSegmentCatalog(segFile);
-      log(' ✓ Segment catalog loaded.');
-
-      const scenarioNodes = $$('#scenarios .scenario');
-      if(scenarioNodes.length===0) throw new Error('Add at least one scenario');
-      const vf = $('#vehicleFilter').value;
-      const strict = $('#strictMatch').value === 'true';
-      const startH = Number($('#startHour').value)||14;
-      const endH = Number($('#endHour').value)||17;
-
-      const runsByScenario = new Map();
-
-      for(let i=0;i<scenarioNodes.length;i++){
-        const node = scenarioNodes[i];
-        const label = node.querySelector('input[type="text"]').value.trim() || `Scenario ${i+1}`;
-        const file = node.querySelector('input[type="file"]').files[0];
-        if(!file){ log(` • ${label}: no file selected, skipping.`); continue; }
-        setStatus(`Reading VRC report for ${label}...`);
-        const {activations} = await readVRCSensorReport(file);
-        state.activations.set(label, activations);
-        log(` ✓ ${label}: activations ${activations.length.toLocaleString()}`);
-
-        const {link_tt, corridor_tt} = computeLinkAndCorridor(activations, vf, state.dfSegments);
-        state.links.set(label, link_tt);
-        log(`   ↳ links: ${link_tt.length.toLocaleString()}`);
-
-        const fullRuns = extractFullCorridorRuns(activations, state.dfSegments, vf, startH, endH, strict);
-        state.corridors.set(label, fullRuns);
-        runsByScenario.set(label, fullRuns);
-        log(`   ↳ corridor runs: ${fullRuns.length.toLocaleString()}`);
-      }
-
-      state.combinedLinks = buildCombinedLinks(state.links, startH, endH);
-      state.combinedCorr  = buildCombinedCorridor(runsByScenario);
-
-      $('#dlCombined').disabled = state.combinedLinks.length===0;
-      $('#dlCorridor').disabled = state.combinedCorr.length===0;
-
-      setStatus(`Done. Links: ${state.combinedLinks.length.toLocaleString()}  Corridor rows: ${state.combinedCorr.length.toLocaleString()}`);
-
-      renderAll();
-    } catch(err){
-      console.error(err);
-      setStatus('Error: ' + err.message);
-    }
-  });
-</script>
 </body>
 </html>
