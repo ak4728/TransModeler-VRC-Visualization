@@ -486,12 +486,16 @@ if(vehicleFilter==='transit'){
         if((b.path_pos - a.path_pos) === 1){
           const tt = secondsDiff(a.ts, b.ts);
           if(tt>0){
-            links.push({
-              vehicle_id: a.vehicle_id, direction: a.direction,
-              from_segment: a.segment, to_segment: b.segment,
-              from_sensor_id: a.sensor_id, to_sensor_id: b.sensor_id,
-              depart_ts: a.ts, arrive_ts: b.ts, travel_time_s: tt
-            });
+const isNB = a.direction.toLowerCase() === 'northbound';
+const link_segment = isNB ? Math.max(a.segment, b.segment) : Math.min(a.segment, b.segment);
+
+links.push({
+  vehicle_id: a.vehicle_id, direction: a.direction,
+  link_segment: link_segment,  // New field for correct segment attribution
+  from_segment: a.segment, to_segment: b.segment,
+  from_sensor_id: a.sensor_id, to_sensor_id: b.sensor_id,
+  depart_ts: a.ts, arrive_ts: b.ts, travel_time_s: tt
+});
           }
         }
       }
@@ -517,7 +521,7 @@ if(vehicleFilter==='transit'){
     return { link_tt: links, corridor_tt: corridor };
   }
 
-  function extractFullCorridorRuns(activations, dfSegments, vehicleFilter, startHour=14, endHour=17, strict=false){
+function extractFullCorridorRuns(activations, dfSegments, vehicleFilter, startHour=14, endHour=18, strict=false)
     let act = activations.filter(r=>r.vehicle_id && r.ts instanceof Date && hourLocal(r.ts)>=startHour && hourLocal(r.ts)<endHour);
 
 if(vehicleFilter==='transit'){
@@ -596,7 +600,7 @@ if(vehicleFilter==='transit'){
           frames.push({
             scenario: label,
             direction: r.direction,
-            segment: r.from_segment,
+segment: r.link_segment || r.from_segment,  // Prefer link_segment if available
             bin_15min: floor15min(r.depart_ts),
             depart_ts: r.depart_ts,
             arrive_ts: r.arrive_ts,
