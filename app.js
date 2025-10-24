@@ -666,22 +666,55 @@ function renderBoxBySegment(){
   const dir = $('#directionPick').value;
   const df = state.combinedLinks.filter(r=>r.direction.toLowerCase()===dir.toLowerCase());
   if(df.length===0){ Plotly.purge('plotBoxSeg'); return; }
+  
   const segs = Array.from(new Set(df.map(r=>r.segment))).sort((a,b)=>a-b);
   const scenarios = Array.from(new Set(df.map(r=>r.scenario))).sort();
+  
+  // Helper to calculate IQR bounds
+  function getIQRBounds(values){
+    const q1 = quantile(values, 0.25);
+    const q3 = quantile(values, 0.75);
+    const iqr = q3 - q1;
+    return {
+      lower: q1 - 1.5 * iqr,
+      upper: q3 + 1.5 * iqr
+    };
+  }
+  
+  // Calculate y-axis range based on IQR whiskers across all data
+  const allY = df.map(r=>r.travel_time_s/60);
+  const bounds = getIQRBounds(allY);
+  // Not needed const ymax = Math.ceil(bounds.upper * 1.1); // 10% padding above upper whisker
+  // Round up to nearest 2 minutes for cleaner scale
+  const ymax = Math.ceil(bounds.upper * 1.2 / 2) * 2;
+  
   const traces = [];
   for(const sc of scenarios){
     const x = [], y = [];
     for(const s of segs){
       const vals = df.filter(r=>r.segment===s && r.scenario===sc).map(r=>r.travel_time_s/60);
-      if(vals.length){ for(const v of vals){ x.push(String(s)); y.push(v); } }
+      if(vals.length){ 
+        // Filter to include only values within IQR bounds for this segment
+        const segBounds = getIQRBounds(vals);
+        for(const v of vals){ 
+          if(v >= segBounds.lower && v <= segBounds.upper){
+            x.push(String(s)); 
+            y.push(v); 
+          }
+        }
+      }
     }
     traces.push({ type:'box', name: sc, x, y, boxpoints:false });
   }
+  
   const layout = { 
     boxmode:'group', 
     title:`${dir} — Link travel times by segment (2–5 PM)`, 
     xaxis:{ title:'Segment' }, 
-    yaxis:{ title:'Travel time (min)' }, 
+    yaxis:{ 
+      title:'Travel time (min)',
+      range: [0, ymax]
+    }, 
     margin:{t:40,r:10,b:50,l:50}, 
     paper_bgcolor:'rgba(0,0,0,0)', 
     plot_bgcolor:'rgba(0,0,0,0)', 
