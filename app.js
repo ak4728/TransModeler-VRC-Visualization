@@ -791,6 +791,57 @@ function renderCorridorTimeSeries(){
   Plotly.newPlot('plotTsCorr', traces, layout, {displayModeBar:true, responsive:true});
 }
 
+function renderCorridorBar(){
+  const dir = $('#directionPick').value;
+  const summ = corridorSummary(state.combinedCorr);
+  const df = summ.filter(r=>r.direction.toLowerCase()===dir.toLowerCase());
+  
+  if(df.length===0){ Plotly.purge('plotBarCorr'); return; }
+  
+  // Sort by scenario for consistent ordering
+  df.sort((a,b)=>a.scenario.localeCompare(b.scenario));
+  
+  const scenarios = df.map(d=>d.scenario);
+  const y = df.map(d=>d.mean_min);
+  
+  // Use Plotly's default color scheme (matches other charts automatically)
+  const traces = df.map((d, i) => ({
+    type: 'bar',
+    name: d.scenario,
+    x: [d.scenario],
+    y: [d.mean_min],
+    error_y: {
+      type: 'data',
+      symmetric: false,
+      array: [d.p90_min - d.mean_min],
+      arrayminus: [d.mean_min - d.p10_min]
+    },
+    text: [d.mean_min.toFixed(1)],
+    textposition: 'outside',
+    textfont: { color: '#e2e8f0' }
+    // No marker.color - let Plotly assign colors automatically
+  }));
+  
+  const layout = {
+    title: `${dir} — Mean corridor travel time (2–5 PM)`,
+    xaxis: { title: 'Scenario' },
+    yaxis: { title: 'Mean travel time (min)' },
+    margin: {t:40, r:120, b:60, l:50}, // Increased right margin for legend
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: {color:'#e2e8f0'},
+    showlegend: true,
+    legend: { 
+      x: 1.02,      // Position outside plot area
+      xanchor: 'left',
+      y: 1,
+      yanchor: 'top'
+    }
+  };
+  
+  Plotly.newPlot('plotBarCorr', traces, layout, {displayModeBar:true, responsive:true});
+}
+
 function renderSummaryTable(){
   const rows = corridorSummary(state.combinedCorr);
   const host = $('#summaryTable');
@@ -830,6 +881,7 @@ function renderAll(){
   renderSegmentTimeSeries();
   renderCorridorBox();
   renderCorridorTimeSeries();
+  renderCorridorBar();  
   renderSummaryTable();
 }
 
@@ -874,7 +926,9 @@ function resizePlotByPanel(id){
     id === 'boxSeg' ? 'plotBoxSeg' :
     id === 'tsSeg'  ? 'plotTsSeg'  :
     id === 'boxCorr'? 'plotBoxCorr':
-    id === 'tsCorr' ? 'plotTsCorr' : null;
+    id === 'tsCorr' ? 'plotTsCorr' :
+    id === 'barCorr'? 'plotBarCorr': 
+    null;
   if(graphId){
     const el = document.getElementById(graphId);
     if(el) Plotly.Plots.resize(el);

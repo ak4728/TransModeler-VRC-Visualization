@@ -108,14 +108,15 @@
     </aside>
 
     <main>
-      <div class="tabs">
-        <div class="tab active" data-tab="barSeg">Bar by segment</div>
-        <div class="tab" data-tab="boxSeg">Box by segment</div>
-        <div class="tab" data-tab="tsSeg">Segment time series</div>
-        <div class="tab" data-tab="boxCorr">Corridor box</div>
-        <div class="tab" data-tab="tsCorr">Corridor time series</div>
-        <div class="tab" data-tab="summary">Corridor summary</div>
-      </div>
+	<div class="tabs">
+	  <div class="tab active" data-tab="barSeg">Bar by segment</div>
+	  <div class="tab" data-tab="boxSeg">Box by segment</div>
+	  <div class="tab" data-tab="tsSeg">Segment time series</div>
+	  <div class="tab" data-tab="barCorr">Corridor bar</div> 
+	  <div class="tab" data-tab="boxCorr">Corridor box</div>
+	  <div class="tab" data-tab="tsCorr">Corridor time series</div> 
+	  <div class="tab" data-tab="summary">Corridor summary</div>
+	</div>
 
       <section id="barSeg" class="panel active">
         <div id="plotBarSeg" class="plot"></div>
@@ -125,6 +126,9 @@
       </section>
       <section id="tsSeg" class="panel">
         <div id="plotTsSeg" class="plot"></div>
+      </section>
+      <section id="barCorr" class="panel">
+	<div id="plotBarCorr" class="plot"></div>
       </section>
       <section id="boxCorr" class="panel">
         <div id="plotBoxCorr" class="plot"></div>
